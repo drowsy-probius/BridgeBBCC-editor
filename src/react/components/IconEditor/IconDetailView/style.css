@@ -1,0 +1,40 @@
+.icon-detail-view {
+  width: 170px;
+  height: min-content;
+  margin: 5px 10px;
+  padding: 5px 10px;
+
+  background-color: rgb(235, 235, 235);
+  border-radius: 10px;
+}
+
+.icon-image-view {
+  text-align: center;
+}
+img {
+  width: 100px;
+  height: 100px;
+}
+
+.key-value-view {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+
+  text-overflow: ellipsis;
+}
+
+.value-text{
+  max-height: 2em;
+  max-width: 100px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.key-text {
+  background-color: rgba(156, 156, 156, 0.795);
+  border-radius: 4px;
+  color: rgb(0, 0, 0);
+}

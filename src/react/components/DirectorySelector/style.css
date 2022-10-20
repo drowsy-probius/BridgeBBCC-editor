@@ -1,0 +1,17 @@
+.directory-selector{
+  background-color: rgb(240, 240, 240);
+
+  border-radius: 1em;
+  border-style: dashed;
+  border-color: rgba(175, 165, 165, 0.411);
+  border-width: 2px;
+
+  text-align: center;
+  font-size: large;
+  white-space: pre-line;
+
+  margin: 10vh 10vw;
+  padding: 33vh 0;
+
+  overflow: hidden;
+}
