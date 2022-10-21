@@ -20,7 +20,7 @@ module.exports = [
    * react
    */
   {
-    test: /\.jsx?$/,
+    test: /\.jsx|js?$/,
     use: {
       loader: 'babel-loader',
       options: {
@@ -31,6 +31,14 @@ module.exports = [
     resolve: {
       extensions: [".js", ".jsx"]
     },
+  },
+  {
+    test: /\.(png|jpg|gif)$/i,
+    use: [
+      {
+        loader: 'file-loader',
+      },
+    ],
   },
   
   // Put your webpack loader rules in this array.  This is where you would put

@@ -8,6 +8,7 @@ const { readdirSync, lstatSync, existsSync, readFileSync, writeFileSync } = requ
 const { join } = require('path');
 const path = require('path');
 const axios = require("axios");
+const { IMAGE_EXTENSIONS } = require("./constants");
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 // eslint-disable-next-line global-require
@@ -37,9 +38,22 @@ const createWindow = () => {
   /**
    * api handler 설정
    */
-  ipcMain.handle("api:openDialog", () => {
+  ipcMain.handle("api:openDialogDirectory", () => {
     const pathArray = dialog.showOpenDialogSync({
       properties: ['openDirectory']
+    });
+    return pathArray[0];
+  });
+
+  ipcMain.handle("api:openDialogFile", () => {
+    const pathArray = dialog.showOpenDialogSync({
+      properties: ['openFile'],
+      filters: [
+        {
+          "name": "image",
+          "extensions": IMAGE_EXTENSIONS
+        }
+      ]
     });
     return pathArray[0];
   });
@@ -78,18 +92,19 @@ const createWindow = () => {
     }
   });
 
+
   /**
    * what is core paths?
    * 
    * config: /lib/config.js
-   * dccon_list: /lib/dccon_list.js
-   * dccon: /images/dccon
+   * icon_list: /lib/dccon_list.js
+   * icon: /images/dccon
    */
   ipcMain.handle("api:getCorePaths", (event, path) => {
     return {
       config: join(path, "lib", "config.js"),
-      dccon_list: join(path, "lib", "dccon_list.js"),
-      dccon: join(path, "images", "dccon"),
+      iconList: join(path, "lib", "dccon_list.js"),
+      iconDirectory: join(path, "images", "dccon"),
     }
   });
 
@@ -112,9 +127,26 @@ const createWindow = () => {
   });
 
   ipcMain.handle("fs:writeFileSync", (event, path, data, options) => {
-    writeFileSync(path, data, options);
-    return true;
+    try 
+    {
+      writeFileSync(path, data, options);
+    }
+    catch(err)
+    {
+      return {
+        status: false,
+        error: err
+      }
+    }
+    return {
+      status: true,
+      error: undefined,
+    }
   });
+
+  ipcMain.handle("fs:relative", (event, from, to) => {
+    return path.relative(from, to);
+  })
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();

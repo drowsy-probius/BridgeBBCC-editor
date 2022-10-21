@@ -1,19 +1,22 @@
 import React, { useState } from "react";
 
+import { useSelector } from "react-redux";
+import { selectAppPath } from "./redux/appPath";
+
 import DirectorySelector from "./components/DirectorySelector";
-import IconEditor from "./components/IconEditor";
+import IconList from "./components/IconList";
 
 function App(){
-  const [path, setPath] = useState("C:/Users/k123s/Desktop/workspace/BridgeBBCC");
+  const appPath = useSelector(selectAppPath);
 
   return (
     <div className="app">
       {
-        path.length === 0
+        typeof(appPath.root) === "string" && appPath.root.length === 0
         ?
-        <DirectorySelector setPath={setPath}/>
+        <DirectorySelector />
         :
-        <IconEditor path={path} />
+        <IconList />
       }
     </div>
   )

@@ -1,0 +1,14 @@
+.icon-editor {
+
+}
+
+.icon-editor-image
+{
+
+}
+
+.icon-editor-items
+{
+  display: flex;
+  flex-direction: column;
+}
