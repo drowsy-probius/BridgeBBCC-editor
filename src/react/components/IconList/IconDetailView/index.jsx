@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useMemo } from "react";
 import "./style.css";
-import { IconImageView } from "../../components";
+import { ImageView } from "../../components";
 
+import { useSelector } from "react-redux";
+import { selectAppPath } from "../../../redux/appPath";
 
 function KeyValueView(props){
   const {keyName, value} = props;
@@ -16,12 +18,21 @@ function KeyValueView(props){
 
 function IconDetailView(props){
   const {icon, openModal} = props;
+  const appPath = useSelector(selectAppPath);
+  const imageSource = useMemo(() => {
+    if(typeof(icon.url) === "string" && icon.url.startsWith("http"))
+    {
+      return icon.url;
+    }
+    return `${appPath.iconDirectory}\\${icon.name}`;
+  }, [icon]);
 
   return (
     <div className="icon-detail-view" onClick={openModal}>
-      <IconImageView icon={icon} />
+      <ImageView imageSource={imageSource} />
       {
-        Object.keys(icon).map((key, idx) => <KeyValueView key={idx} keyName={key} value={icon[key]} />)
+        Object.entries(icon).filter(([key, value]) => !key.startsWith("$") && value.length > 0)
+        .map(([key, value], idx) => <KeyValueView key={idx} keyName={key} value={icon[key]} />)
       }
     </div>
   )

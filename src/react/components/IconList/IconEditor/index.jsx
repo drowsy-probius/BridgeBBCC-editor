@@ -1,6 +1,6 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 
-import { IconImageView } from "../../components";
+import { ImageView } from "../../components";
 
 import "./style.css";
 
@@ -8,8 +8,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectAppPath } from "../../../redux/appPath";
 import { selectIconList, setIconListValue } from "../../../redux/iconList";
 
-import { IMAGE_EXTENSIONS } from "../../../../constants";
-import { iconValidationChecker, saveIconListToFile } from "../../functions";
+import { isUniqueIcon, saveIconListToFile } from "../../functions";
 
 function ValueEditor(props) {
   const {keyName, value, onChangeHandler} = props;
@@ -44,10 +43,30 @@ function IconEditor(props){
 
   const [icon, setIcon] = useState(props.icon);
   const [iconIdx, setIconIdx] = useState(-1);
+  const imageSource = useMemo(() => {
+    if(typeof(icon.url) === "string" && icon.url.startsWith("http"))
+    {
+      return icon.url
+    }
+    return icon.$localPath;
+  }, [icon]);
 
+  const filename = useRef(icon.name);
+  let filenameChanged = false;
   const timeoutRef = useRef(-1);
 
   useEffect(() => {
+    const extendedIcon = {...icon}
+    if(extendedIcon.$localPath === undefined)
+    {
+      extendedIcon.$localPath = `${appPath.iconDirectory}\\${icon.name}`
+    }
+    if(extendedIcon.url === undefined)
+    {
+      extendedIcon.url = ""
+    }
+    setIcon(extendedIcon);
+
     for(let i=0; i<iconList.length; i++)
     {
       const isSame = JSON.stringify(icon) === JSON.stringify(iconList[i]);
@@ -58,7 +77,7 @@ function IconEditor(props){
     }
   }, []);
 
-  const onChangeHandler = (keyName, event) => {
+  const onChangeHandler = async (event, keyName) => {
     if(iconIdx === -1){
       return;
     }
@@ -66,10 +85,15 @@ function IconEditor(props){
     const target = event.target;
     const dataType = target.getAttribute("data-type");
     const value = dataType === "boolean" ? target.checked : 
-                  dataType === "array" ? target.value.split(/,\s*/u) : target.value ;
+                  dataType === "array" ? target.value.trim().split(/,\s*/u) : target.value.trim() ;
+       
     const newIcon = {
       ...icon,
       [keyName]: value
+    }
+    if(filename.current !== newIcon.name)
+    {
+      filenameChanged = true;
     }
     setIcon(newIcon);
 
@@ -78,11 +102,27 @@ function IconEditor(props){
       clearTimeout(timeoutRef.current);
     }
     timeoutRef.current = setTimeout(async () => {
-      const validationResult = iconValidationChecker(newIcon, iconIdx, iconList);
+      const validationResult = isUniqueIcon(newIcon, iconIdx, iconList);
       if(validationResult.status === false)
       {
         console.error(validationResult);
         return;
+      }
+
+      /**
+       * name 항목이 변경되면
+       * 로컬 이미지의 이름도 변경되어야 함.
+       */
+      if(filenameChanged)
+      {
+        const res = await window.fs.renameSync(`${appPath.iconDirectory}/${filename.current}`, `${appPath.iconDirectory}/${newIcon.name}`);
+        if(res.status === false)
+        {
+          console.error(res.error);
+          throw new Error(res.error);
+        }
+        filename.current = newIcon.name;
+        filenameChanged = false;
       }
 
       const newIconList = iconList.map((icon, idx) => {
@@ -94,9 +134,9 @@ function IconEditor(props){
       })
       dispatch(setIconListValue(
         newIconList
-      ));
+      ));   
 
-      const saveResult = await saveIconListToFile(appPath.iconList, newIconList);
+      const saveResult = await saveIconListToFile(newIconList, appPath);
       if(saveResult.status === false)
       {
         console.error(saveResult);
@@ -104,35 +144,25 @@ function IconEditor(props){
 
       clearTimeout(timeoutRef.current); 
       timeoutRef.current = -1;
-    }, 500);
+    }, 70);
+
   }
 
   const changeImage = (path) => {
-    // TODO!
-    if(!IMAGE_EXTENSIONS.includes(path.split('.').pop()))
-    {
-      /**
-       * TODO:
-       * show error message
-       */
-       console.error(path);
-       return;
-    }
-
-    if(!path.startsWith(appPath.iconDirectory))
-    {
-      /**
-       * TODO:
-       * show error message
-       */
-      console.error(path);
-      return;
-    }
-    console.log(path);
+    /**
+     * skip image localtion checker.
+     * It will copy image to correct directory.
+     */
+    const newIcon = { ...icon }
+    newIcon.name = path.split(/\/|\\/).pop();
+    newIcon.$localPath = path;
+    setIcon(newIcon);
   }
   const onDropHandler = (event) => {
     event.preventDefault();
     event.stopPropagation();
+
+    console.log(event.dataTransfer);
 
     const path = event.dataTransfer.files[0].path;
     changeImage(path);
@@ -152,11 +182,12 @@ function IconEditor(props){
   return (
     <div className="icon-editor" onDrop={onDropHandler} onDragOver={ignoreEvent}>
       <div className="icon-editor-image" onClick={openDialog}>
-        <IconImageView icon={icon} />
+        <ImageView imageSource={imageSource} />
       </div>
       <div className="icon-editor-items">
         {
-          Object.keys(icon).map((key, idx) => <ValueEditor key={idx} keyName={key} value={icon[key]} onChangeHandler={(e) => onChangeHandler(key, e)} />)
+          Object.entries(icon).filter(([key, value]) => !key.startsWith("$"))
+          .map(([key, value], idx) => <ValueEditor key={idx} keyName={key} value={icon[key]} onChangeHandler={(e) => onChangeHandler(e, key)} />)
         }
       </div>
     </div>

@@ -1,0 +1,12 @@
+.modal-confirm-dialog{
+  z-index: 1060 !important;
+}
+
+.modal-confirm-dialog-backdrop {
+  z-index: 1059 !important;
+}
+
+.modal-confirm-dialog-content
+{
+
+}

@@ -4,7 +4,7 @@ import { Button, Modal } from 'react-bootstrap';
 import IconEditor from "../IconEditor";
 
 function ModalView(props){
-  const {icon, showModal, handleModalClose} = props;
+  const {icon, showModal, handleModalClose, iconDeleteHandler} = props;
 
   return (
     <>
@@ -30,6 +30,7 @@ function ModalView(props){
           </Modal.Body>
 
           <Modal.Footer>
+            <Button variant="danger" onClick={()=>{iconDeleteHandler(icon)}}>삭제</Button>
             <Button variant="secondary" onClick={handleModalClose}>닫기</Button>
           </Modal.Footer>
         </Modal>

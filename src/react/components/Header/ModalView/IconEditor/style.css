@@ -1,0 +1,16 @@
+.icon-placeholder {
+  height: 100px;
+  text-align: -webkit-center;
+
+  white-space: pre-line;
+  border-width: 2px;
+  border-style: dashed;
+  border-color: lightgray;
+  border-radius: 10px;
+}
+.icon-placeholder-text {
+  width: 70%;
+
+  margin: 4px;
+  padding: 10px 5px;
+}

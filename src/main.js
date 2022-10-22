@@ -4,8 +4,8 @@ const {
   ipcMain,
   dialog,
 } = require('electron');
-const { readdirSync, lstatSync, existsSync, readFileSync, writeFileSync } = require('fs');
-const { join } = require('path');
+const { readdirSync, lstatSync, existsSync, readFileSync, writeFileSync, copyFileSync, renameSync, rmSync } = require('fs');
+const { join, normalize, parse } = require('path');
 const path = require('path');
 const axios = require("axios");
 const { IMAGE_EXTENSIONS } = require("./constants");
@@ -92,7 +92,6 @@ const createWindow = () => {
     }
   });
 
-
   /**
    * what is core paths?
    * 
@@ -109,27 +108,30 @@ const createWindow = () => {
   });
 
   ipcMain.handle("api:getBufferFromUrl", (event, path) => {
-    return axios.get(path, {
+    return axios.get(encodeURI(decodeURI(path)), {
       responseType: "arraybuffer"
     }).then(res => Buffer.from(res.data, 'binary'));
   });
 
 
+  
+
+
   ipcMain.handle("fs:readdirSync", (event, path) => {
-    const result = readdirSync(path);
+    const result = readdirSync(normalize(path));
     return result;
   });
 
 
   ipcMain.handle("fs:readFileSync", (event, path, options) => {
-    const data = readFileSync(path, options);
+    const data = readFileSync(normalize(path), options);
     return data;
   });
 
   ipcMain.handle("fs:writeFileSync", (event, path, data, options) => {
     try 
     {
-      writeFileSync(path, data, options);
+      writeFileSync(normalize(path), data, options);
     }
     catch(err)
     {
@@ -144,8 +146,62 @@ const createWindow = () => {
     }
   });
 
+  ipcMain.handle("fs:copyFileSync", (event, src, dest, mode) => {
+    try
+    {
+      copyFileSync(normalize(src), normalize(dest), mode);
+    }
+    catch(err)
+    {
+      return {
+        status: false,
+        error: err,
+      }
+    }
+    return {
+      status: true,
+      error: undefined,
+    }
+  });
+
   ipcMain.handle("fs:relative", (event, from, to) => {
     return path.relative(from, to);
+  });
+
+  ipcMain.handle("fs:renameSync", (event, oldPath, newPath) => {
+    try 
+    {
+      renameSync(normalize(oldPath), normalize(newPath));
+    }
+    catch(err)
+    {
+      return {
+        status: false,
+        error: err,
+      }
+    }
+    return {
+      status: true,
+      error: undefined,
+    }
+  });
+
+  ipcMain.handle("fs:rmSync", (event, path, options) => {
+    try
+    {
+      rmSync(path, options);
+    }
+    catch(err)
+    {
+      return {
+        status: false,
+        error: err,
+      }
+    }
+    return {
+      status: true,
+      error: undefined,
+    }
   })
 
   // Open the DevTools.

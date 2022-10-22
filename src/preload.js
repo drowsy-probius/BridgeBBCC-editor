@@ -15,7 +15,10 @@ contextBridge.exposeInMainWorld("fs", {
   readdirSync: (path) => ipcRenderer.invoke("fs:readdirSync", path),
   readFileSync: (path, options) => ipcRenderer.invoke("fs:readFileSync", path, options),
   writeFileSync: (path, data, options) => ipcRenderer.invoke("fs:writeFileSync", path, data, options),
+  copyFileSync: (src, dest, mode=0) => ipcRenderer.invoke("fs:copyFileSync", src, dest, mode),
   relative: (from, to) => ipcRenderer.invoke("fs:relative", from, to),
+  renameSync: (oldPath, newPath) => ipcRenderer.invoke("fs:renameSync", oldPath, newPath),
+  rmSync: (path, options) => ipcRenderer.invoke("fs:rmSync", path, options),
 });
 
 

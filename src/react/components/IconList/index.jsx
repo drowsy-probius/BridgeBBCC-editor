@@ -3,6 +3,7 @@ import IconDetailView from "./IconDetailView";
 import ModalView from "./ModalView";
 import "./style.css";
 
+import { saveIconListToFile } from "../functions";
 import { useSelector, useDispatch } from "react-redux";
 import { selectAppPath } from "../../redux/appPath";
 import { selectIconList, setIconListValue } from "../../redux/iconList";
@@ -43,6 +44,16 @@ function IconList() {
         }
       }
       dispatch(setIconListValue(jsonData));
+      /**
+       * tags가 빈 곳에 미지정을 추가했으니 다시 저장함
+       */
+      saveIconListToFile(jsonData, appPath)
+      .then(res => {
+        if(res.status === false)
+        {
+          console.error(res);
+        }
+      });
     }
 
     readIconList();
@@ -73,6 +84,25 @@ function IconList() {
     setSelectedIcon(icon);
     setShowModal(true);
   }
+  const iconDeleteHandler = async (icon) => {
+    const newIconList = iconList.filter(oldIcon => JSON.stringify(oldIcon) !== JSON.stringify(icon));
+
+    const deleteRes = await window.fs.rmSync(`${appPath.iconDirectory}/${icon.name}`);
+    if(deleteRes.status === false)
+    {
+      console.error(deleteRes.error);
+    }
+    
+    dispatch(setIconListValue(newIconList));
+    saveIconListToFile(newIconList, appPath)
+    .then(res => {
+      if(res.status === false)
+      {
+        console.error(res);
+      }
+    });
+    setShowModal(false);
+  }
 
   return (
     <div className="icon-edit">
@@ -80,6 +110,7 @@ function IconList() {
         icon={selectedIcon}
         showModal={showModal}
         handleModalClose={handleModalClose}
+        iconDeleteHandler={iconDeleteHandler}
       />
 
       <Header onSearchKeywordChangeHandler={onSearchKeywordChangeHandler} />
