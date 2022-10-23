@@ -124,14 +124,91 @@ export function findErrorsInIconList(iconList) {
   /**
    * {
    *   key: name|keywords|url,
+   *   level: 0, // lower is higher
    *   conflict: [
-   *     { icon },
-   *     { icon },
-   *     ...
-   *   ]
+   *     { icon1 },
+   *     { icon2? }
+   *   ],
+   *   message?: "",
    * }
    */
   const errors = [];
+
+  for(let i=0; i<iconList.length; i++)
+  {
+    const icon = iconList[i];
+
+    if(typeof(icon.name) !== "string")
+    {
+      errors.push({
+        key: "name",
+        conflict: [icon],
+        message: `name 항목은 문자열이어야 해요.`,
+        level: 0,
+      });
+      continue;
+    }
+
+    if((!Array.isArray(icon.keywords)) || icon.keywords.filter(i => typeof(i) !== "string").length > 0)
+    {
+      errors.push({
+        key: "keywords",
+        conflict: [icon],
+        message: `keywords 항목은 문자열 리스트이어야 해요.`,
+        level: 0,
+      });
+      continue;
+    }
+
+    if(icon.url && (typeof(icon.url) !== "string" || !icon.url.startsWith("http")))
+    {
+      errors.push({
+        key: "url",
+        conflict: [icon],
+        message: `url 항목은 http로 시작하는 문자열이어야 해요`,
+        level: 1,
+      });
+      continue;
+    }
+
+    if(icon.uri && (typeof(icon.uri) !== "string" || !icon.uri.startsWith("http")))
+    {
+      errors.push({
+        key: "uri",
+        conflict: [icon],
+        message: `uri 항목은 http로 시작하는 문자열이어야 해요`,
+        level: 1,
+      });
+      continue;
+    }
+
+    for(let innerIdx=i+1; innerIdx<iconList.length; innerIdx++)
+    {
+      const innerIcon = iconList[innerIdx];
+      if(icon.name === innerIcon.name)
+      {
+        errors.push({
+          key: "name",
+          conflict: [icon, innerIcon],
+          message: `사실 name이 같아도 동작은 하지만 다르게 하는 게 맞을 것 같아요...`,
+          level: 3,
+        });
+      }
+
+      for(let keywordIdx=0; keywordIdx<icon.keywords.length; keywordIdx++)
+      {
+        if(innerIcon.keywords.includes(icon.keywords[keywordIdx]))
+        {
+          errors.push({
+            key: "keywords",
+            conflict: [icon, innerIcon],
+            message: `keywords는 겹치면 안돼요!`,
+            level: 0,
+          });
+        }
+      }
+    }
+  }
     
   return errors;
 }

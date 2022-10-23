@@ -10,14 +10,69 @@
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
-    "lint": "echo \"No linting configured\""
+    "lint": "echo \"No linting configured\"",
+    "build:package": "yarn electron-builder build --win portable"
   },
   "keywords": [],
   "author": {
-    "name": "k123s456h",
+    "name": "drowsyprobius",
     "email": "k123s456h@gmail.com"
   },
   "license": "MIT",
+  "build": {
+    "appId": "dev.probius.bridgebbccEditor",
+    "productName": "bridgebbccEditor",
+    "copyright": "Copyright © 2022 Drowsy Probius",
+    "mac": {
+      "category": "public.app-category.utilities",
+      "icon": "assets/icon.icns",
+      "target": [
+        "zip",
+        "dmg"
+      ],
+      "publish": [
+        "github"
+      ]
+    },
+    "win": {
+      "publisherName": "Drowsy Probius",
+      "publish": [
+        "github"
+      ],
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "tar.gz"
+      ]
+    },
+    "dmg": {
+      "background": "assets/background.png",
+      "icon": "assets/icon.icns",
+      "title": "Accurate Installer"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "drowsyprobius",
+        "repo": "accurate",
+        "vPrefixedTagName": true,
+        "private": true,
+        "releaseType": "draft"
+      }
+    ]
+  },
   "config": {
     "forge": {
       "packagerConfig": {},
@@ -79,6 +134,7 @@
     "babel-loader": "^8.2.5",
     "css-loader": "^6.0.0",
     "electron": "21.2.0",
+    "electron-builder": "^23.6.0",
     "file-loader": "^6.2.0",
     "node-loader": "^2.0.0",
     "nodemon": "^2.0.20",

@@ -24,10 +24,24 @@ function Header(props) {
     const errors = findErrorsInIconList(iconList);
     if(errors.length === 0)
     {
-      console.log('No errors!');
+      window.api.alert(`
+축하합니다! 
+에러가 없어요!!
+`);
       return;
     }
-    console.error(errors);
+    window.api.alert(`
+저런! 에러가 있어요!!
+    
+심각한 에러:
+${JSON.stringify(errors.filter(i => i.level === 0), null, 2)}
+
+문제가 될 수 있는 에러:
+${JSON.stringify(errors.filter(i => i.level === 1), null, 2)}
+
+권고사항:
+${JSON.stringify(errors.filter(i => i.level > 1), null, 2)}
+`)
   } 
 
   return (

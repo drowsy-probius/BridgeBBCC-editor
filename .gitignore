@@ -88,5 +88,8 @@ typings/
 # Electron-Forge
 out/
 
+# electron-builder
+dist/
+
 
 yarn.lock

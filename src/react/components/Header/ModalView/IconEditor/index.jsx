@@ -32,34 +32,29 @@ function IconEditor(props){
   const [imageSource, setImageSource] = useState("");
 
   const changeImage = (path) => {
-    // TODO!
-    // if(!IMAGE_EXTENSIONS.includes(path.split('.').pop()))
-    // {
-    //   /**
-    //    * TODO:
-    //    * show error message
-    //    */
-    //    console.error(path);
-    //    return;
-    // }
-
-    /**
-     * skip image localtion checker.
-     * It will copy image to correct directory.
-     */
     try 
     {
+      if(!IMAGE_EXTENSIONS.includes(path.split('.').pop()))
+      {
+        throw new Error(`
+        올바른 이미지가 아닌 것 같아요
+        ${path}
+        `);
+      }
+
+      /**
+       * skip image localtion checker.
+       * It will copy image to correct directory.
+       */
       setImageSource(path);
     }
     catch(err)
     {
-      console.error(err);
-      console.error(`이미지를 불러올 수 없습니다. ${path}`)
+      window.api.alert(JSON.stringify(err, null, 2));
     }
     const newIcon = { ...icon };
     newIcon.name = path.split(/\/|\\/).pop();
     newIcon.$localPath = path;
-    console.log(newIcon);
     setIcon(newIcon);
 
   }
@@ -96,7 +91,6 @@ function IconEditor(props){
      */
     if(keyName === "url" && value.startsWith("http"))
     {
-      console.log(keyName, value);
       changeImage(value);
       newIcon.name = value.split(/\/|\\/).pop();
     }

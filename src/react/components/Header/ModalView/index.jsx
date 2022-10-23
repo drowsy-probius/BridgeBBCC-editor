@@ -47,21 +47,21 @@ function ModalView(props) {
   }
   const saveIconAndClose = (event) => {
 
-    if(icon.$localPath === '' && icon.url === '')
+    if(icon.$localPath === '' && icon.url === '' && icon.uri === '')
     {
-      console.error(`${JSON.stringify(icon, null, 2)}에 이미지를 까먹은 것 같은데요?`);
+      window.api.alert(`${JSON.stringify(icon, null, 2)}에 이미지를 까먹은 것 같은데요?`);
       return;
     }
 
     if(!isValidIcon(icon))
     {
-      console.error(`${JSON.stringify(icon, null, 2)} 뭔가 형식이 이상해요`);
+      window.api.alert(`${JSON.stringify(icon, null, 2)} 뭔가 형식이 이상해요`);
       return;
     }
     const uniqueCheckerResult = isUniqueIcon(icon, -1, iconList);
     if(uniqueCheckerResult.status === false)
     {
-      console.error(`${JSON.stringify(icon, null, 2)} ${JSON.stringify(uniqueCheckerResult, null, 2)} 중복된 항목이 있어요`);
+      window.api.alert(`${JSON.stringify(icon, null, 2)} ${JSON.stringify(uniqueCheckerResult, null, 2)} 중복된 항목이 있어요`);
       return;
     }
     const newIconList = [
@@ -73,7 +73,7 @@ function ModalView(props) {
     .then(res => {
       if(res.status === false)
       {
-        console.error(res);
+        window.api.alert(res);
       }
     });
     setIcon({ ...defaultIconFormat });

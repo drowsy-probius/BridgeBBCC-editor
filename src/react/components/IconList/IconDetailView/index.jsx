@@ -24,6 +24,17 @@ function IconDetailView(props){
     {
       return icon.url;
     }
+
+    if(typeof(icon.uri) === "string" && icon.uri.startsWith("http"))
+    {
+      return icon.uri;
+    }
+
+    if(typeof(icon.path) === "string" && icon.path.startsWith("http"))
+    {
+      return icon.path;
+    }
+
     return `${appPath.iconDirectory}\\${icon.name}`;
   }, [icon]);
 

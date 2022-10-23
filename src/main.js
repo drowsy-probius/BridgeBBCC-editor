@@ -19,8 +19,10 @@ if (require('electron-squirrel-startup')) {
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
+    width: 850,
+    height: 725,
+    minWidth: 270,
+    minHeight: 420,
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
 
@@ -111,6 +113,17 @@ const createWindow = () => {
     return axios.get(encodeURI(decodeURI(path)), {
       responseType: "arraybuffer"
     }).then(res => Buffer.from(res.data, 'binary'));
+  });
+
+  ipcMain.handle("api:alert", (event, optionsOrString) => {
+    if(typeof(optionsOrString) === "string")
+    {
+      return dialog.showMessageBox({
+        message: optionsOrString,
+      });
+    }
+
+    return dialog.showMessageBox(optionsOrString);
   });
 
 
@@ -205,7 +218,7 @@ const createWindow = () => {
   })
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished

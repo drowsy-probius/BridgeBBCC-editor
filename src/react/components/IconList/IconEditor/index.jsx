@@ -48,6 +48,14 @@ function IconEditor(props){
     {
       return icon.url
     }
+    if(typeof(icon.uri) === "string" && icon.uri.startsWith("http"))
+    {
+      return icon.uri
+    }
+    if(typeof(icon.path) === "string" && icon.path.startsWith("http"))
+    {
+      return icon.path
+    }
     return icon.$localPath;
   }, [icon]);
 
@@ -91,9 +99,18 @@ function IconEditor(props){
       ...icon,
       [keyName]: value
     }
-    if(filename.current !== newIcon.name)
+    if(
+      !(
+        (typeof(icon.url) === "string" && icon.url.startsWith("http")) ||
+        (typeof(icon.uri) === "string" && icon.uri.startsWith("http")) ||
+        (typeof(icon.path) === "string" && icon.path.startsWith("http"))
+      )
+    )
     {
-      filenameChanged = true;
+      if(filename.current !== newIcon.name)
+      {
+        filenameChanged = true;
+      }
     }
     setIcon(newIcon);
 
@@ -105,7 +122,7 @@ function IconEditor(props){
       const validationResult = isUniqueIcon(newIcon, iconIdx, iconList);
       if(validationResult.status === false)
       {
-        console.error(validationResult);
+        window.api.alert(validationResult);
         return;
       }
 
@@ -118,7 +135,7 @@ function IconEditor(props){
         const res = await window.fs.renameSync(`${appPath.iconDirectory}/${filename.current}`, `${appPath.iconDirectory}/${newIcon.name}`);
         if(res.status === false)
         {
-          console.error(res.error);
+          window.api.alert(res.error);
           throw new Error(res.error);
         }
         filename.current = newIcon.name;
@@ -139,7 +156,7 @@ function IconEditor(props){
       const saveResult = await saveIconListToFile(newIconList, appPath);
       if(saveResult.status === false)
       {
-        console.error(saveResult);
+        window.api.alert(saveResult);
       }
 
       clearTimeout(timeoutRef.current); 

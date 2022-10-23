@@ -45,7 +45,14 @@ export function ImageView(props){
 }
 
 export function ModalConfirmDialog(props){
-  const {show, message, onCancel, onConfirm} = props;
+  const {
+    show, 
+    message, 
+    onCancel, 
+    onConfirm,
+    confirmMessage,
+    cancelMessage,
+  } = props;
 
 
   return (
@@ -64,8 +71,8 @@ export function ModalConfirmDialog(props){
       </Modal.Body>
 
       <Modal.Footer>
-        <Button variant="secondary" onClick={onCancel}>아니요</Button>
-        <Button variant="primary" onClick={onConfirm}>네!!!</Button>
+        <Button variant="secondary" onClick={onCancel}>{cancelMessage ?? "아니요!"}</Button>
+        <Button variant="primary" onClick={onConfirm}>{confirmMessage ?? "네!!"}</Button>
       </Modal.Footer>
     </Modal>
   )

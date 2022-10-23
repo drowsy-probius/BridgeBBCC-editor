@@ -51,7 +51,7 @@ function IconList() {
       .then(res => {
         if(res.status === false)
         {
-          console.error(res);
+          window.api.alert(res);
         }
       });
     }
@@ -90,7 +90,7 @@ function IconList() {
     const deleteRes = await window.fs.rmSync(`${appPath.iconDirectory}/${icon.name}`);
     if(deleteRes.status === false)
     {
-      console.error(deleteRes.error);
+      window.api.alert(deleteRes.error);
     }
     
     dispatch(setIconListValue(newIconList));
@@ -98,7 +98,7 @@ function IconList() {
     .then(res => {
       if(res.status === false)
       {
-        console.error(res);
+        window.api.alert(res);
       }
     });
     setShowModal(false);

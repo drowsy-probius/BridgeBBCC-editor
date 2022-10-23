@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld("api", {
   isValidDirectory: (path) => ipcRenderer.invoke("api:isValidDirectory", path),
   getCorePaths: (path) => ipcRenderer.invoke("api:getCorePaths", path),
   getBufferFromUrl: (path) => ipcRenderer.invoke("api:getBufferFromUrl", path),
+  alert: (optionsOrString) => ipcRenderer.invoke("api:alert", optionsOrString),
 });
 
 contextBridge.exposeInMainWorld("fs", {
