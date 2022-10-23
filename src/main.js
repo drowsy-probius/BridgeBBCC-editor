@@ -4,8 +4,20 @@ const {
   ipcMain,
   dialog,
 } = require('electron');
-const { readdirSync, lstatSync, existsSync, readFileSync, writeFileSync, copyFileSync, renameSync, rmSync } = require('fs');
-const { join, normalize, parse } = require('path');
+const { 
+  readdirSync, 
+  lstatSync, 
+  existsSync, 
+  readFileSync, 
+  writeFileSync, 
+  copyFileSync, 
+  renameSync, 
+  rmSync 
+} = require('fs');
+const { 
+  join, 
+  normalize 
+} = require('path');
 const path = require('path');
 const axios = require("axios");
 const { IMAGE_EXTENSIONS } = require("./constants");
@@ -224,8 +236,6 @@ const createWindow = () => {
 
   // hide menu
   mainWindow.removeMenu();
-
-
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools();

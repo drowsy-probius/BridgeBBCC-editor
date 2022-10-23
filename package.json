@@ -11,7 +11,8 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "build:package": "yarn electron-builder build --win"
+    "build:package": "yarn electron-builder build --win",
+    "webpack:build": "yarn webpack --no-devtool --output-path .webpack --entry ./src/main.js --config ./webpack.main.config.js"
   },
   "keywords": [],
   "author": {
@@ -115,7 +116,8 @@
     "node-loader": "^2.0.0",
     "nodemon": "^2.0.20",
     "redux-devtools": "^3.7.0",
-    "style-loader": "^3.0.0"
+    "style-loader": "^3.0.0",
+    "webpack-cli": "^4.10.0"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.8.6",
