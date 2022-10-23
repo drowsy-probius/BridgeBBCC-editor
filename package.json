@@ -11,7 +11,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "build:package": "yarn electron-builder build --win portable"
+    "build:package": "yarn electron-builder build --win"
   },
   "keywords": [],
   "author": {
@@ -20,12 +20,10 @@
   },
   "license": "MIT",
   "build": {
-    "appId": "dev.probius.bridgebbccEditor",
-    "productName": "bridgebbccEditor",
     "copyright": "Copyright © 2022 Drowsy Probius",
     "mac": {
       "category": "public.app-category.utilities",
-      "icon": "assets/icon.icns",
+      "icon": "assets/icon.256.png",
       "target": [
         "zip",
         "dmg"
@@ -36,11 +34,11 @@
     },
     "win": {
       "publisherName": "Drowsy Probius",
+      "icon": "assets/icon.256.png",
       "publish": [
         "github"
       ],
       "target": [
-        "nsis",
         "portable"
       ]
     },
@@ -49,29 +47,7 @@
         "AppImage",
         "tar.gz"
       ]
-    },
-    "dmg": {
-      "background": "assets/background.png",
-      "icon": "assets/icon.icns",
-      "title": "Accurate Installer"
-    },
-    "nsis": {
-      "oneClick": false,
-      "perMachine": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true
-    },
-    "publish": [
-      {
-        "provider": "github",
-        "owner": "drowsyprobius",
-        "repo": "accurate",
-        "vPrefixedTagName": true,
-        "private": true,
-        "releaseType": "draft"
-      }
-    ]
+    }
   },
   "config": {
     "forge": {
