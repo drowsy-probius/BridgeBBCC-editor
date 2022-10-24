@@ -14,7 +14,7 @@ import { setIconListValue, selectIconList } from "../../../redux/iconList";
  */
 const defaultIconFormat = {
   name: "이름.png",
-  keywords: ['태그'],
+  keywords: ['키워드'],
   tags: ['미지정'],
   url: '',
   $localPath: '',

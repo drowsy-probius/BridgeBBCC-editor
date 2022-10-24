@@ -10,8 +10,12 @@ function KeyValueView(props){
 
   return (
     <div className="key-value-view">
-      <div className="key-text">{keyName}</div>
-      <div className="value-text">{`${value}`}</div>
+      <div className="key-text-container">
+        <div className="key-text">{keyName}</div>
+      </div>
+      <div className="value-text-container">
+        <div className="value-text">{`${value}`}</div>  
+      </div>
     </div>
   )
 }

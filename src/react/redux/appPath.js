@@ -4,10 +4,10 @@ export const appPathSlice = createSlice({
   name: 'appPath',
   initialState: {
     value: {
-      root: "", // for debug
-      config: "",
-      iconList: "",
-      iconDirectory: "",
+      root: "C:\\Users\\k123s\\Desktop\\workspace\\BridgeBBCC", // for debug
+      config: "C:\\Users\\k123s\\Desktop\\workspace\\BridgeBBCC\\lib\\config.js",
+      iconList: "C:\\Users\\k123s\\Desktop\\workspace\\BridgeBBCC\\lib\\dccon_list.js",
+      iconDirectory: "C:\\Users\\k123s\\Desktop\\workspace\\BridgeBBCC\\images\\dccon",
     }
   },
   reducers: {

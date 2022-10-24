@@ -38,7 +38,7 @@ export function ImageView(props){
   }, [imageSource]);
 
   return (
-    <div className="icon-image-view" style={{textAlign: "center"}}>
+    <div className="icon-image-view" style={{textAlign: "center", margin: "5px",}}>
       {imgComponent}
     </div>
   )

@@ -45,9 +45,9 @@ const createWindow = () => {
       nodeIntegrationInWorker: true,
 
       /**
-       * build할때 설정해야 함.
+       * build할때 false로 설정해야 함.
        */
-      devTools: false
+      devTools: true
     },
   });
 
@@ -235,7 +235,7 @@ const createWindow = () => {
   })
 
   // hide menu
-  mainWindow.removeMenu();
+  // mainWindow.removeMenu();
 
   // Open the DevTools.
   // mainWindow.webContents.openDevTools();
