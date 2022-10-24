@@ -46,8 +46,11 @@ function ModalView(props) {
     handleModalClose();
   }
   const saveIconAndClose = (event) => {
-
-    if(icon.$localPath === '' && icon.url === '' && icon.uri === '')
+    if(
+      (typeof(icon.$localPath) !== "string" || icon.$localPath === '') && 
+      (typeof(icon.url) !== "string" || !icon.url.startsWith('http')) && 
+      (typeof(icon.uri) !== "string" || !icon.uri.startsWith('http'))
+    )
     {
       window.api.alert(`${JSON.stringify(icon, null, 2)}에 이미지를 까먹은 것 같은데요?`);
       return;
@@ -64,6 +67,7 @@ function ModalView(props) {
       window.api.alert(`${JSON.stringify(icon, null, 2)} ${JSON.stringify(uniqueCheckerResult, null, 2)} 중복된 항목이 있어요`);
       return;
     }
+    
     const newIconList = [
       icon,
       ...iconList,

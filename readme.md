@@ -1,6 +1,8 @@
-코드 수정 이후에 electron-builder 으로 빌드할 때 yarn make같은 거로 electron-forge 실행해줘야 .webpack 디렉토리 갱신되어 변경된 코드로 빌드할 수 있음.
+# BridgeBBCC editor
+
+[BridgeBBCC](https://github.com/krynen/BridgeBBCC)를 사용하여 디시콘을 적용하는 스트리머를 위한 도구입니다.
+
+url 항목은 2022/10/23일자 BridgeBBCC 버전 (commit 06c02f5411a35423abddce6952e1cc9c3c08612c) 부터 동작합니다.
 
 
-# TODO 
-- 새 아이콘 추가할 때 아이콘이 없어도 추가가 가능함. 허용해야 할까?
-- ~~목표: 100MB이하의 단일 exe파일~~
+

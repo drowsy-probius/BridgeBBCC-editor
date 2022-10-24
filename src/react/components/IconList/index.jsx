@@ -87,11 +87,25 @@ function IconList() {
   const iconDeleteHandler = async (icon) => {
     const newIconList = iconList.filter(oldIcon => JSON.stringify(oldIcon) !== JSON.stringify(icon));
 
-    const deleteRes = await window.fs.rmSync(`${appPath.iconDirectory}/${icon.name}`);
-    if(deleteRes.status === false)
+    if(
+      !(
+        (typeof(icon.url) === "string" && icon.url.startsWith('http')) ||
+        (typeof(icon.uri) === "string" && icon.uri.startsWith('http'))
+      )
+      /**
+       * url, uri 항목이 있는 상태의 아이콘은
+       * 로컬에 이미지가 있지 않기 때문에 
+       * 이미지 삭제 로직을 거치지 않음.
+       */
+    )
     {
-      window.api.alert(deleteRes.error);
+      const deleteRes = await window.fs.rmSync(`${appPath.iconDirectory}/${icon.name}`);
+      if(deleteRes.status === false)
+      {
+        window.api.alert(deleteRes.error);
+      }
     }
+    
     
     dispatch(setIconListValue(newIconList));
     saveIconListToFile(newIconList, appPath)

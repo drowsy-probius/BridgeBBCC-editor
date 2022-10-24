@@ -8,7 +8,7 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectAppPath } from "../../../redux/appPath";
 import { selectIconList, setIconListValue } from "../../../redux/iconList";
 
-import { isUniqueIcon, saveIconListToFile } from "../../functions";
+import { isValidIcon, isUniqueIcon, saveIconListToFile } from "../../functions";
 
 function ValueEditor(props) {
   const {keyName, value, onChangeHandler} = props;
@@ -99,6 +99,29 @@ function IconEditor(props){
       ...icon,
       [keyName]: value
     }
+
+    if(
+      (typeof(newIcon.$localPath) !== "string" || newIcon.$localPath === '') && 
+      (typeof(newIcon.url) !== "string" || !newIcon.url.startsWith('http')) && 
+      (typeof(newIcon.uri) !== "string" || !newIcon.uri.startsWith('http'))
+    )
+    {
+      window.api.alert(`${JSON.stringify(newIcon, null, 2)}에 이미지를 까먹은 것 같은데요?`);
+      return;
+    }
+
+    if(!isValidIcon(newIcon))
+    {
+      window.api.alert(`${JSON.stringify(newIcon, null, 2)} 뭔가 형식이 이상해요`);
+      return;
+    }
+    const uniqueCheckerResult = isUniqueIcon(newIcon, iconIdx, iconList);
+    if(uniqueCheckerResult.status === false)
+    {
+      window.api.alert(`${JSON.stringify(uniqueCheckerResult, null, 2)} 중복된 항목이 있어요`);
+      return;
+    }
+
     if(
       !(
         (typeof(icon.url) === "string" && icon.url.startsWith("http")) ||
@@ -119,12 +142,6 @@ function IconEditor(props){
       clearTimeout(timeoutRef.current);
     }
     timeoutRef.current = setTimeout(async () => {
-      const validationResult = isUniqueIcon(newIcon, iconIdx, iconList);
-      if(validationResult.status === false)
-      {
-        window.api.alert(validationResult);
-        return;
-      }
 
       /**
        * name 항목이 변경되면
