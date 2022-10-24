@@ -24,7 +24,8 @@
     "asar": true,
     "files": [
       "!out",
-      "!.vscode"
+      "!.vscode",
+      "!img"
     ],
     "icon": "assets/icon.256.png",
     "mac": {
