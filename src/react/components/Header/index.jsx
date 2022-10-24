@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./style.css";
+import * as JSON5 from "json5";
 
 import { useSelector } from "react-redux";
 import { selectIconList } from "../../redux/iconList";
@@ -34,13 +35,13 @@ function Header(props) {
 저런! 에러가 있어요!!
     
 심각한 에러:
-${JSON.stringify(errors.filter(i => i.level === 0), null, 2)}
+${JSON5.stringify(errors.filter(i => i.level === 0), null, 2)}
 
 문제가 될 수 있는 에러:
-${JSON.stringify(errors.filter(i => i.level === 1), null, 2)}
+${JSON5.stringify(errors.filter(i => i.level === 1), null, 2)}
 
 권고사항:
-${JSON.stringify(errors.filter(i => i.level > 1), null, 2)}
+${JSON5.stringify(errors.filter(i => i.level > 1), null, 2)}
 `)
   } 
 

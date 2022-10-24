@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Button, Modal } from 'react-bootstrap';
 import IconEditor from "./IconEditor";
+import * as JSON5 from "json5";
 
 import { ModalConfirmDialog } from "../../components";
 import { isValidIcon, isUniqueIcon, saveIconListToFile } from "../../functions";
@@ -43,6 +44,7 @@ function ModalView(props) {
 
   const closeWithoutSave = (event) => {
     closeConfirmModal();
+    setIcon({...defaultIconFormat});
     handleModalClose();
   }
   const saveIconAndClose = (event) => {
@@ -52,19 +54,21 @@ function ModalView(props) {
       (typeof(icon.uri) !== "string" || !icon.uri.startsWith('http'))
     )
     {
-      window.api.alert(`${JSON.stringify(icon, null, 2)}에 이미지를 까먹은 것 같은데요?`);
+      window.api.alert(`이미지가 없는 것 같아요! \n\n ${JSON5.stringify(icon, null, 2)}`);
       return;
     }
 
-    if(!isValidIcon(icon))
+    const validationResult = isValidIcon(icon);
+    if(validationResult.status === false)
     {
-      window.api.alert(`${JSON.stringify(icon, null, 2)} 뭔가 형식이 이상해요`);
+      window.api.alert(`${validationResult.message} \n\n ${JSON5.stringify(icon, null, 2)} `);
       return;
     }
+
     const uniqueCheckerResult = isUniqueIcon(icon, -1, iconList);
     if(uniqueCheckerResult.status === false)
     {
-      window.api.alert(`${JSON.stringify(icon, null, 2)} ${JSON.stringify(uniqueCheckerResult, null, 2)} 중복된 항목이 있어요`);
+      window.api.alert(`중복된 항목이 있어요! \n\n ${JSON5.stringify(uniqueCheckerResult, null, 2)} \n\n ${JSON5.stringify(icon, null, 2)}`);
       return;
     }
     
@@ -80,8 +84,8 @@ function ModalView(props) {
         window.api.alert(res);
       }
     });
-    setIcon({ ...defaultIconFormat });
 
+    setIcon({ ...defaultIconFormat });
     handleModalClose();
   }
 

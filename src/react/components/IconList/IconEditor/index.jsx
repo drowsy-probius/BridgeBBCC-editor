@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef, useMemo } from "react";
+import * as JSON5 from "json5";
 
 import { ImageView } from "../../components";
 
@@ -64,20 +65,18 @@ function IconEditor(props){
   const timeoutRef = useRef(-1);
 
   useEffect(() => {
-    const extendedIcon = {...icon}
-    if(extendedIcon.$localPath === undefined)
-    {
-      extendedIcon.$localPath = `${appPath.iconDirectory}\\${icon.name}`
-    }
-    if(extendedIcon.url === undefined)
-    {
-      extendedIcon.url = ""
+    const extendedIcon = {
+      name: typeof(icon.name) !== "string" ? "이름을_적어주세요" : icon.name,
+      keywords: Array.isArray(icon.keywords) === false ? [] : icon.keywords,
+      tags: Array.isArray(icon.tags) === false ? ['미지정'] : icon.tags,
+      url: typeof(icon.url) !== "string" ? "" : icon.url,
+      $localPath: typeof(icon.$localPath) !== "string" ? `${appPath.iconDirectory}\\${icon.name}` : icon.$localPath,
     }
     setIcon(extendedIcon);
 
     for(let i=0; i<iconList.length; i++)
     {
-      const isSame = JSON.stringify(icon) === JSON.stringify(iconList[i]);
+      const isSame = JSON5.stringify(icon) === JSON5.stringify(iconList[i]);
       if(!isSame) continue;
       
       setIconIdx(i);
@@ -106,19 +105,19 @@ function IconEditor(props){
       (typeof(newIcon.uri) !== "string" || !newIcon.uri.startsWith('http'))
     )
     {
-      window.api.alert(`${JSON.stringify(newIcon, null, 2)}에 이미지를 까먹은 것 같은데요?`);
+      window.api.alert(`${JSON5.stringify(newIcon, null, 2)}에 이미지를 까먹은 것 같은데요?`);
       return;
     }
 
     if(!isValidIcon(newIcon))
     {
-      window.api.alert(`${JSON.stringify(newIcon, null, 2)} 뭔가 형식이 이상해요`);
+      window.api.alert(`${JSON5.stringify(newIcon, null, 2)} 뭔가 형식이 이상해요`);
       return;
     }
     const uniqueCheckerResult = isUniqueIcon(newIcon, iconIdx, iconList);
     if(uniqueCheckerResult.status === false)
     {
-      window.api.alert(`${JSON.stringify(uniqueCheckerResult, null, 2)} 중복된 항목이 있어요`);
+      window.api.alert(`중복된 항목이 있어요. \n\n ${JSON5.stringify(uniqueCheckerResult, null, 2)} `);
       return;
     }
 
@@ -178,7 +177,7 @@ function IconEditor(props){
 
       clearTimeout(timeoutRef.current); 
       timeoutRef.current = -1;
-    }, 70);
+    }, 10);
 
   }
 

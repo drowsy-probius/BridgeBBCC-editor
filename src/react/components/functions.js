@@ -1,3 +1,5 @@
+import * as JSON5 from "json5";
+
 export function arrayBufferToBase64(buffer) {
   var binary = '';
   var bytes = new Uint8Array( buffer );
@@ -62,7 +64,6 @@ export async function imageBase64FromIcon(icon, iconDirectory) {
 }
  
 export function isUniqueIcon(icon, iconIdx, iconList) {
-
   for(let i=0; i<iconList.length; i++)
   {
     if(i === iconIdx) continue;
@@ -72,6 +73,18 @@ export function isUniqueIcon(icon, iconIdx, iconList) {
     /**
      * name check
      */
+    if(typeof(currentIcon.name) !== "string" || currentIcon.name.length === 0)
+    {
+      return {
+        status: false,
+        message: {
+          message: "아래 value에 적혀있는 아이콘에 name가 없어요. 포맷 검증을 한 뒤에 추가해주세요.",
+          key: "",
+          value: currentIcon,
+          conflict: i,
+        }
+      }
+    }
     if(icon.name === currentIcon.name)
     {
       return {
@@ -87,6 +100,22 @@ export function isUniqueIcon(icon, iconIdx, iconList) {
     /**
      * keywords check
      */
+    if(
+      Array.isArray(currentIcon.keywords) === false || 
+      currentIcon.keywords.filter(i => (typeof(i) !== "string" || i.length === 0).length !== 0)
+    )
+    {
+      return {
+        status: false,
+        message: {
+          message: "아래 value에 적혀있는 아이콘에 keywords가 없어요. 포맷 검증을 한 뒤에 추가해주세요.",
+          key: "",
+          value: currentIcon,
+          conflict: i,
+        }
+      }
+    }
+
     for(let ik=0; ik<icon.keywords.length; ik++)
     {
       for(let ilk=0; ilk<currentIcon.keywords.length; ilk++)
@@ -113,11 +142,40 @@ export function isUniqueIcon(icon, iconIdx, iconList) {
 }
 
 export function isValidIcon(icon) {
-  if(!icon.name || typeof(icon.name) !== "string" || icon.name.length === 0) return false;
-  if(!icon.keywords || !Array.isArray(icon.keywords) || icon.keywords.length === 0) return false;
-  if(!icon.tags || !Array.isArray(icon.tags) || icon.tags.length === 0) return false;
+  console.log(icon);
 
-  return true;
+  if(typeof(icon.name) !== "string" || icon.name.length === 0)
+  {
+    return {
+      status: false,
+      message: "name 항목은 있어야 해요."
+    }
+  }
+
+  if(Array.isArray(icon.keywords) === false || icon.keywords.filter(i => (
+    typeof(i) !== "string" || i.length === 0
+  )).length !== 0)
+  {
+    return {
+      status: false,
+      message: "keywords 항목은 있어야 해요."
+    }
+  }
+
+  if(Array.isArray(icon.tags) === false || icon.tags.filter(i => (
+    typeof(i) !== "string" || i.length === 0
+  )).length !== 0)
+  {
+    return {
+      status: false,
+      message: "tags 항목은 있어야 해요. 없으면 `미지정`이라고 적어주세요."
+    }
+  }
+
+  return {
+    status: true,
+    message: undefined,
+  }
 }
 
 export function findErrorsInIconList(iconList) {
@@ -149,7 +207,7 @@ export function findErrorsInIconList(iconList) {
       continue;
     }
 
-    if((!Array.isArray(icon.keywords)) || icon.keywords.filter(i => typeof(i) !== "string").length > 0)
+    if(Array.isArray(icon.keywords) === false || icon.keywords.filter(i => (typeof(i) !== "string" || i.length === 0)).length > 0)
     {
       errors.push({
         key: "keywords",
@@ -160,7 +218,7 @@ export function findErrorsInIconList(iconList) {
       continue;
     }
 
-    if(icon.url && (typeof(icon.url) !== "string" || !icon.url.startsWith("http")))
+    if(typeof(icon.url) !== "string" || !icon.url.startsWith("http"))
     {
       errors.push({
         key: "url",
@@ -171,7 +229,7 @@ export function findErrorsInIconList(iconList) {
       continue;
     }
 
-    if(icon.uri && (typeof(icon.uri) !== "string" || !icon.uri.startsWith("http")))
+    if(typeof(icon.uri) !== "string" || !icon.uri.startsWith("http"))
     {
       errors.push({
         key: "uri",
@@ -233,7 +291,7 @@ export async function saveIconListToFile(iconList, appPath) {
       value.length > 0
     )))
   );
-  const textData = `dcConsData = ${JSON.stringify(jsonData, null ,2)};`;
+  const textData = `dcConsData = ${JSON5.stringify(jsonData, null ,2)};`;
   const result = await window.fs.writeFileSync(appPath.iconList, textData, {encoding: "utf8", flag: "w"});
   return result;
 }

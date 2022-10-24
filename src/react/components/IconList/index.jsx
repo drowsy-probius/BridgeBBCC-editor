@@ -8,16 +8,23 @@ import { useSelector, useDispatch } from "react-redux";
 import { selectAppPath } from "../../redux/appPath";
 import { selectIconList, setIconListValue } from "../../redux/iconList";
 import Header from "../Header";
+import * as JSON5 from "json5";
 
 import { LazyLoadComponent } from "react-lazy-load-image-component";
 
 
 function iconListPreProcessor(text) {
-  return text.trim()
-          .replace("dcConsData = ", "")
-          .replace(/;$/, "")
-          .replaceAll(/,\s*([a-zA-Z]+):/g, ",\"$1\":")
-          .replaceAll(/{\s*([a-zA-Z]+):/g, "{\"$1\":");
+  /**
+   * dcConsData로 할당된 배열만 가져옴
+   */
+  const jsonData = [...text.matchAll(/dcConsData\s+=\s+(\[[\S\s]*\])/gu)][0][1];
+  return jsonData;
+
+  // return text.trim()
+  //         .replace("dcConsData = ", "") // 할당문 제거
+  //         .replace(/;$/, "")  // 마지막 ; 제거
+  //         .replaceAll(/,\s*([a-zA-Z]+):/g, ",\"$1\":") // ""으로 묶이지 않은 key 묶기
+  //         .replaceAll(/{\s*([a-zA-Z]+):/g, "{\"$1\":"); // ""으로 묶이지 않은 key 묶기
 }
 
 
@@ -35,14 +42,17 @@ function IconList() {
   useEffect(() => {
     async function readIconList() {
       const data = await window.fs.readFileSync(appPath.iconList, {encoding: "utf8", flag: "r"});
-      const jsonData = JSON.parse(iconListPreProcessor(data));
-      for(const icon of jsonData)
-      {
+      const jsonDataRaw = JSON5.parse(iconListPreProcessor(data));
+      const jsonData = jsonDataRaw.map(icon => {
         if(icon.tags === undefined || icon.tags.length === 0)
         {
-          icon.tags = ["미지정", ]
+          return {
+            ...icon,
+            tags: ["미지정"]
+          };
         }
-      }
+        return icon;
+      })
       dispatch(setIconListValue(jsonData));
       /**
        * tags가 빈 곳에 미지정을 추가했으니 다시 저장함
@@ -85,7 +95,7 @@ function IconList() {
     setShowModal(true);
   }
   const iconDeleteHandler = async (icon) => {
-    const newIconList = iconList.filter(oldIcon => JSON.stringify(oldIcon) !== JSON.stringify(icon));
+    const newIconList = iconList.filter(oldIcon => JSON5.stringify(oldIcon) !== JSON5.stringify(icon));
 
     if(
       !(
@@ -132,7 +142,7 @@ function IconList() {
       <div className="icon-list">
         {
           iconList.filter(filterBySearchKeyword).map((icon, idx) => 
-          <LazyLoadComponent key={`${icon.name}${icon.keywords[0]}`} >
+          <LazyLoadComponent key={`${icon.name}${icon.keywords}`} >
             <IconDetailView 
               icon={icon} 
               openModal={() => {openModal(icon)}}

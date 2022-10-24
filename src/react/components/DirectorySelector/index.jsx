@@ -32,7 +32,7 @@ function DirectorySelector(){
     }
     else 
     {
-      setMessage(`path는 ${ERROR_MESSAGE}`);
+      setMessage(`${path}는 ${ERROR_MESSAGE}`);
     }
   }
 

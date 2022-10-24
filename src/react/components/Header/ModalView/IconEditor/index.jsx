@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import * as JSON5 from "json5";
 
 import { IMAGE_EXTENSIONS } from "../../../../../constants";
 import { ImageView } from "../../../components";
@@ -50,7 +51,7 @@ function IconEditor(props){
     }
     catch(err)
     {
-      window.api.alert(JSON.stringify(err, null, 2));
+      window.api.alert(JSON5.stringify(err, null, 2));
     }
     const newIcon = { ...icon };
     newIcon.name = path.split(/\/|\\/).pop();
