@@ -4,9 +4,6 @@ import { LazyLoadImage } from "react-lazy-load-image-component";
 import loading from "../loading.gif";
 import { Modal, Button } from "react-bootstrap";
 
-import { useSelector } from "react-redux";
-import { selectAppPath } from "../redux/appPath";
-
 import "./components.css";
 
 export function ImageView(props){

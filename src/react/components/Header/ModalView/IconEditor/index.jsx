@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 import { IMAGE_EXTENSIONS } from "../../../../../constants";
 import { ImageView } from "../../../components";

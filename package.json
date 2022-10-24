@@ -1,8 +1,9 @@
 {
-  "name": "bridgebbcc-editor",
-  "productName": "bridgebbcc-editor",
+  "name": "bridggcc-editor",
+  "productName": "BridgeBBCC editor",
   "version": "1.0.0",
-  "description": "My Electron application description",
+  "description": "json editor for BridgeBBCC",
+  "repository": "https://github.com/drowsy-probius/BridgeBBCC-editor",
   "main": ".webpack/main",
   "scripts": {
     "start": "electron-forge start",
@@ -11,8 +12,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "build:package": "yarn electron-builder build --win",
-    "webpack:build": "yarn webpack --no-devtool --output-path .webpack --entry ./src/main.js --config ./webpack.main.config.js"
+    "build": "rm -rf out/ .webpack/ && yarn make && yarn electron-builder build --win portable"
   },
   "keywords": [],
   "author": {
@@ -21,24 +21,22 @@
   },
   "license": "MIT",
   "build": {
-    "copyright": "Copyright © 2022 Drowsy Probius",
+    "asar": true,
+    "files": [
+      "!out",
+      "!.vscode"
+    ],
+    "icon": "assets/icon.256.png",
     "mac": {
       "category": "public.app-category.utilities",
       "icon": "assets/icon.256.png",
       "target": [
         "zip",
         "dmg"
-      ],
-      "publish": [
-        "github"
       ]
     },
     "win": {
-      "publisherName": "Drowsy Probius",
       "icon": "assets/icon.256.png",
-      "publish": [
-        "github"
-      ],
       "target": [
         "portable"
       ]
