@@ -1,7 +1,7 @@
 {
   "name": "bridggcc-editor",
   "productName": "BridgeBBCC editor",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "json editor for BridgeBBCC",
   "repository": "https://github.com/drowsy-probius/BridgeBBCC-editor",
   "main": ".webpack/main",
@@ -12,7 +12,7 @@
     "make": "electron-forge make",
     "publish": "electron-forge publish",
     "lint": "echo \"No linting configured\"",
-    "build": "rm -rf out/ .webpack/ && yarn make && yarn electron-builder build --win portable"
+    "build": "rm -rf out/ .webpack/ dist/ && yarn make && yarn electron-builder build --win portable"
   },
   "keywords": [],
   "author": {
@@ -27,17 +27,17 @@
       "!.vscode",
       "!img"
     ],
-    "icon": "assets/icon.256.png",
+    "icon": "src/assets/icon.256.png",
     "mac": {
       "category": "public.app-category.utilities",
-      "icon": "assets/icon.256.png",
+      "icon": "src/assets/icon.256.png",
       "target": [
         "zip",
         "dmg"
       ]
     },
     "win": {
-      "icon": "assets/icon.256.png",
+      "icon": "src/assets/icon.256.png",
       "target": [
         "portable"
       ]

@@ -13,6 +13,9 @@ contextBridge.exposeInMainWorld("api", {
 });
 
 contextBridge.exposeInMainWorld("fs", {
+  existsSync: (path) => ipcRenderer.invoke("fs:existsSync", path),
+  isFile: (path) => ipcRenderer.invoke("fs:isFile", path),
+
   readdirSync: (path) => ipcRenderer.invoke("fs:readdirSync", path),
   readFileSync: (path, options) => ipcRenderer.invoke("fs:readFileSync", path, options),
   writeFileSync: (path, data, options) => ipcRenderer.invoke("fs:writeFileSync", path, data, options),
@@ -21,6 +24,8 @@ contextBridge.exposeInMainWorld("fs", {
   renameSync: (oldPath, newPath) => ipcRenderer.invoke("fs:renameSync", oldPath, newPath),
   rmSync: (path, options) => ipcRenderer.invoke("fs:rmSync", path, options),
 });
+
+
 
 
 

@@ -6,6 +6,8 @@ import { selectAppPath } from "./redux/appPath";
 import DirectorySelector from "./components/DirectorySelector";
 import IconList from "./components/IconList";
 
+import "./App.css";
+
 function App(){
   const appPath = useSelector(selectAppPath);
 

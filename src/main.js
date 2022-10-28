@@ -3,6 +3,7 @@ const {
   BrowserWindow, 
   ipcMain,
   dialog,
+  Tray,
 } = require('electron');
 const { 
   readdirSync, 
@@ -12,7 +13,8 @@ const {
   writeFileSync, 
   copyFileSync, 
   renameSync, 
-  rmSync 
+  rmSync, 
+  statSync
 } = require('fs');
 const { 
   join, 
@@ -29,12 +31,16 @@ if (require('electron-squirrel-startup')) {
 }
 
 const createWindow = () => {
+  // const appIcon = new Tray("./assets/icon.32.png");
+  const appIcon = path.join(__dirname, "assets/icon.32.png")
+
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 850,
     height: 725,
     minWidth: 270,
     minHeight: 420,
+    icon: appIcon,
     webPreferences: {
       preload: MAIN_WINDOW_PRELOAD_WEBPACK_ENTRY,
 
@@ -101,7 +107,7 @@ const createWindow = () => {
     }
     catch(err)
     {
-      console.error(err);
+      // console.error(err);
       return false;
     }
   });
@@ -132,25 +138,39 @@ const createWindow = () => {
     {
       return dialog.showMessageBox({
         message: optionsOrString,
+        icon: appIcon,
       });
     }
 
-    return dialog.showMessageBox(optionsOrString);
+    return dialog.showMessageBox({
+      ...optionsOrString,
+      icon: appIcon,
+    });
   });
 
 
   
+  /**
+   * fs api
+   */
 
-
-  ipcMain.handle("fs:readdirSync", (event, path) => {
-    const result = readdirSync(normalize(path));
-    return result;
+  ipcMain.handle("fs:existsSync", (event, path) => {
+    return existsSync(normalize(path));
   });
 
+  ipcMain.handle("fs:isFile", (event, path) => {
+    if(!existsSync(normalize(path))) return false;
+
+    const stats = statSync(normalize(path));
+    return stats.isFile();
+  });
+
+  ipcMain.handle("fs:readdirSync", (event, path) => {
+    return readdirSync(normalize(path));
+  });
 
   ipcMain.handle("fs:readFileSync", (event, path, options) => {
-    const data = readFileSync(normalize(path), options);
-    return data;
+    return readFileSync(normalize(path), options);
   });
 
   ipcMain.handle("fs:writeFileSync", (event, path, data, options) => {
@@ -214,7 +234,7 @@ const createWindow = () => {
   ipcMain.handle("fs:rmSync", (event, path, options) => {
     try
     {
-      rmSync(path, options);
+      rmSync(normalize(path), options);
     }
     catch(err)
     {
@@ -227,13 +247,15 @@ const createWindow = () => {
       status: true,
       error: undefined,
     }
-  })
+  });
+
+
 
   // hide menu
   mainWindow.removeMenu();
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished

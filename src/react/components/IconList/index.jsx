@@ -3,7 +3,15 @@ import IconDetailView from "./IconDetailView";
 import ModalView from "./ModalView";
 import "./style.css";
 
-import { saveIconListToFile } from "../functions";
+import { 
+  findErrorsInIcon, 
+  isUniqueIcon, 
+  saveIconListToFile,
+  isUrl,
+  isImage,
+  moveImage,
+  copyImage,
+} from "../functions";
 import { useSelector, useDispatch } from "react-redux";
 import { selectAppPath } from "../../redux/appPath";
 import { selectIconList, setIconListValue } from "../../redux/iconList";
@@ -19,12 +27,6 @@ function iconListPreProcessor(text) {
    */
   const jsonData = [...text.matchAll(/dcConsData\s+=\s+(\[[\S\s]*\])/gu)][0][1];
   return jsonData;
-
-  // return text.trim()
-  //         .replace("dcConsData = ", "") // 할당문 제거
-  //         .replace(/;$/, "")  // 마지막 ; 제거
-  //         .replaceAll(/,\s*([a-zA-Z]+):/g, ",\"$1\":") // ""으로 묶이지 않은 key 묶기
-  //         .replaceAll(/{\s*([a-zA-Z]+):/g, "{\"$1\":"); // ""으로 묶이지 않은 key 묶기
 }
 
 
@@ -36,7 +38,9 @@ function IconList() {
 
   const [searchKey, setSearchKey] = useState("");
   const [showModal, setShowModal] = useState(false);
-  const [selectedIcon, setSelectedIcon] = useState(0);
+  const [selectedIconIdx, setSelectedIconIdx] = useState(0);
+  const [selectedIcon, setSelectedIcon] = useState();
+  const [modifiedIcon, setModifiedIcon] = useState();
 
 
   useEffect(() => {
@@ -48,7 +52,7 @@ function IconList() {
         {
           return {
             ...icon,
-            tags: ["미지정"]
+            tags: ["미지정"] /** 리스트 불러올 때 태그 없으면 미지정으로 설정 */
           };
         }
         return icon;
@@ -61,17 +65,27 @@ function IconList() {
       .then(res => {
         if(res.status === false)
         {
-          window.api.alert(res);
+          window.api.alert(JSON5.stringify(res, null, 2));
         }
       });
     }
 
-    readIconList();
+    try 
+    {
+      readIconList();
+    }
+    catch(err)
+    {
+      window.api.alert(`목록을 불러오는 중에 오류가 발생했어요. \n\n${JSON5.stringify(err)}`)
+    }
   }, []);
+
 
   const onSearchKeywordChangeHandler = (event) => {
     setSearchKey(event.target.value);
   }
+
+
   const filterBySearchKeyword = (icon) => {
     if(searchKey === "") return true;
 
@@ -87,13 +101,108 @@ function IconList() {
     return false;
   }
 
-  const handleModalClose = () => {
+
+  const handleModalClose = async () => {
+    /**
+     * 수정한 icon이 올바른 값인 지 확인함.
+     */
+    const iconErrors = findErrorsInIcon(modifiedIcon);
+    if(iconErrors.length > 0)
+    {
+      window.api.alert(`수정한 값이 잘못된 것 같아요. \n\n ${JSON5.stringify(iconErrors, null, 2)}`);
+      return;
+    }
+
+    /**
+     * 중복되는 값 확인
+     */
+    const uniqueCheckerResult = isUniqueIcon(modifiedIcon, selectedIconIdx, iconList);
+    if(uniqueCheckerResult !== true)
+    {
+      window.api.alert(`중복된 항목이 있어요. \n\n ${JSON5.stringify(uniqueCheckerResult, null, 2)}`);
+      return;
+    }
+
+    /**
+     * 실제 변경 로직
+     * 하나라도 실패하면 창 닫지 않음.
+     */
+    
+    if(modifiedIcon.$isLocalImageChanged)
+    {
+      const res = await copyImage(modifiedIcon.$localPath, `${appPath.iconDirectory}/${modifiedIcon.name}`);
+      if(res !== true)
+      {
+        window.api.alert(res.message);
+        return
+      }
+    }
+    else {
+      if(!isUrl(modifiedIcon.url) && !isUrl(modifiedIcon.uri) && modifiedIcon.name !== selectedIcon.name)
+      {
+        const res = await moveImage(`${appPath.iconDirectory}/${selectedIcon.name}`, `${appPath.iconDirectory}/${modifiedIcon.name}`);
+        if(res !== true)
+        {
+          window.api.alert(res.error);
+          return;
+        }
+      }
+    }
+
+    /**
+     * 새로운 iconList 계산
+     */
+    const newIconList = iconList.map((icon, idx) => {
+      if(idx === selectedIconIdx) return modifiedIcon;
+      return icon;
+    });
+
+    /**
+     * 변경한 iconList를 로컬에 저장
+     */
+    const saveRes = await saveIconListToFile(newIconList, appPath);
+    if(saveRes.status === false)
+    {
+      window.api.alert(JSON5.stringify(saveRes, null, 2));
+      return;
+    }
+
+    /**
+     * iconList를 로컬에 저장 성공하면 갱신함.
+     */
+    dispatch(setIconListValue(newIconList));
+
+    /**
+     * selectedIcon도 갱신해야
+     * 뷰어에서 수정된 값이 반영됨.
+     */
+    setSelectedIcon(modifiedIcon); 
+    
+    /**
+     * 이제 모달을 닫아도 좋습니다.
+     */
     setShowModal(false);
   };
+
+  const handleModalCloseWithoutSave = async () => {
+    setModifiedIcon(selectedIcon);
+    setShowModal(false);
+  }
+
+
   const openModal = (icon) => {
+    iconList.forEach((i, idx) => {
+      if(JSON5.stringify(icon) === JSON5.stringify(i))
+      {
+        setSelectedIconIdx(idx);
+      }
+    });
     setSelectedIcon(icon);
+    setModifiedIcon(icon);
     setShowModal(true);
   }
+
+
   const iconDeleteHandler = async (icon) => {
     const newIconList = iconList.filter(oldIcon => JSON5.stringify(oldIcon) !== JSON5.stringify(icon));
 
@@ -112,7 +221,7 @@ function IconList() {
       const deleteRes = await window.fs.rmSync(`${appPath.iconDirectory}/${icon.name}`);
       if(deleteRes.status === false)
       {
-        window.api.alert(deleteRes.error);
+        window.api.alert(JSON5.stringify(deleteRes.error, null, 2));
       }
     }
     
@@ -122,24 +231,26 @@ function IconList() {
     .then(res => {
       if(res.status === false)
       {
-        window.api.alert(res);
+        window.api.alert(JSON5.stringify(res, null, 2));
       }
     });
     setShowModal(false);
   }
 
   return (
-    <div className="icon-edit">
+    <div className="icon-list">
       <ModalView 
         icon={selectedIcon}
+        setModifiedIcon={setModifiedIcon}
         showModal={showModal}
         handleModalClose={handleModalClose}
+        handleModalCloseWithoutSave={handleModalCloseWithoutSave}
         iconDeleteHandler={iconDeleteHandler}
       />
 
       <Header onSearchKeywordChangeHandler={onSearchKeywordChangeHandler} />
 
-      <div className="icon-list">
+      <div className="icon-container">
         {
           iconList.filter(filterBySearchKeyword).map((icon, idx) => 
           <LazyLoadComponent key={`${icon.name}${icon.keywords}`} >

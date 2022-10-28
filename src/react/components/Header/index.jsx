@@ -25,16 +25,12 @@ function Header(props) {
     const errors = findErrorsInIconList(iconList);
     if(errors.length === 0)
     {
-      window.api.alert(`
-축하합니다! 
-에러가 없어요!!
-`);
+      window.api.alert(`에러가 없어요!`);
       return;
     }
-    window.api.alert(`
-저런! 에러가 있어요!!
-    
-심각한 에러:
+
+    window.api.alert(`저런! 에러가 있어요!! \n
+심각한 에러: 
 ${JSON5.stringify(errors.filter(i => i.level === 0), null, 2)}
 
 문제가 될 수 있는 에러:

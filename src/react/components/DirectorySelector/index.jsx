@@ -7,6 +7,8 @@ import { setAppPathValue } from "../../redux/appPath";
 const NORMAL_MESSAGE = `
 여기를 눌러서 BridgeBBCC 폴더를 선택해주세요!
 아니면 드래그 해도 괜찮아요.
+
+dccon_list.js에 있는 주석은 사라져요!
 `;
 
 const ERROR_MESSAGE = `
@@ -32,7 +34,7 @@ function DirectorySelector(){
     }
     else 
     {
-      setMessage(`${path}는 ${ERROR_MESSAGE}`);
+      setMessage(`"${path}"는 ${ERROR_MESSAGE}`);
     }
   }
 

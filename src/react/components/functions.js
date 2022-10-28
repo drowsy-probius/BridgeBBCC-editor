@@ -1,4 +1,112 @@
 import * as JSON5 from "json5";
+import { IMAGE_EXTENSIONS } from "../../constants";
+
+const ICON_KEYS = {
+  NAME: "name",
+  KEYWORDS: "keywords",
+  TAGS: "tags",
+  URI: "uri",
+  URL: "url",
+};
+
+export const PLACEHOLDERS = {
+  NAME: "이미지를 선택하면 제가 입력할게요.",
+  KEYWORDS: "[필수] 컴마(,)으로 구분된 키워드 목록이에요.",
+  TAGS: "[필수] 컴마(,)으로 구분된 태그 목록이에요.",
+  URL: "외부 이미지를 사용하려면 이미지 주소를 입력해요.",
+}
+
+function createErrorObject(key, message="", level=0, args={}) {
+  return {
+    key: key,
+    message: message,
+    level: level,
+    ...args
+  }
+}
+
+function comparePath(path1, path2) {
+  return path1.replaceAll("\\", "/") === path2.replaceAll("\\", "/");
+}
+
+/**
+ * string이고 (http:// | https://)으로 시작하면 true
+ * @param {*} str 
+ * @returns 
+ */
+export function isUrl(str) {
+  return (
+    typeof(str) === "string" && 
+    (
+      str.startsWith("http://") || 
+      str.startsWith("https://")
+    )
+  )
+}
+
+export function isImage(str) {
+  return (
+    IMAGE_EXTENSIONS.includes(str.split('.').pop())
+  );
+}
+
+export function isValidString(str) {
+  return (
+    typeof(str) === "string" && 
+    str.length > 0
+  );
+}
+
+export function isValidStringArray(array) {
+  return (
+    Array.isArray(array) && 
+    array.length > 0 &&
+    array.filter(i => typeof(i) !== "string").length === 0
+  );
+}
+
+/**
+ * `str`가 `string`인데 `http`로 시작하지 않으면 false
+ * @param {*} str 
+ * @returns 
+ */
+export function isValidOptionalUrl(str) {
+  return (
+    ( !isValidString(str) )||
+    (
+      isUrl(str)
+    )
+  );
+}
+
+export function isValidImageSource(str) {
+  return (
+    isImage(str) || isUrl(str)
+  )
+}
+
+/**
+ * `icon`에는 이미지 주소 아니면 $localPath 둘 중 하나는 있어야 한다.
+ * @param {} icon 
+ * @returns 
+ */
+export function getImageSource(icon) {
+  if(isUrl(icon.url))
+  {
+    return icon.url
+  }
+  if(isUrl(icon.uri))
+  {
+    return icon.uri
+  }
+  if(isUrl(icon.path))
+  {
+    return icon.path
+  }
+  return icon.$localPath;
+}
+
+
 
 export function arrayBufferToBase64(buffer) {
   var binary = '';
@@ -10,6 +118,7 @@ export function arrayBufferToBase64(buffer) {
   return window.btoa( binary );
 }
 
+
 export async function imageBufferLoaderFromUri(imagePath) {
   if(typeof(imagePath) === "string" && imagePath.startsWith("http"))
   {
@@ -18,51 +127,39 @@ export async function imageBufferLoaderFromUri(imagePath) {
   return await window.fs.readFileSync(imagePath);;
 }
 
-export async function imageBufferLoaderFromIcon (icon, iconDirectory) {
-  let buffer;
-  if(typeof(icon.uri) === "string" && icon.uri.startsWith("http"))
-  {
-    buffer = await imageBufferLoaderFromUri(icon.uri);
-  }
-  else if(typeof(icon.url) === "string" && icon.url.startsWith("http"))
-  {
-    buffer = await imageBufferLoaderFromUri(icon.url);
-  }
-  else 
-  {
-    buffer = await imageBufferLoaderFromUri(`${iconDirectory}/${icon.name}`);
-  }
-
-  return buffer;
-}
-
-export function imageExtFromIcon (icon) {
-  let ext = "webp";
-  if(typeof(icon.uri) === "string" && icon.uri.startsWith("http"))
-  {
-    ext = icon.uri.split('.').pop();
-  }
-  else if(typeof(icon.url) === "string" && icon.url.startsWith("http"))
-  {
-    ext = icon.url.split('.').pop();
-  }
-  else 
-  {
-    ext = icon.name.split('.').pop();
-  }
-  return ext;
-}
 
 export async function imageBase64FromUri(imagePath) {
-  const ext = (typeof(imagePath) !== "string") ? "webp"
-  : imagePath.startsWith("http") ? "webp" : imagePath.split('.').pop();
-  return `data:image/${ext};base64,${arrayBufferToBase64(await imageBufferLoaderFromUri(imagePath))}`;
+  try 
+  {
+    const ext = (typeof(imagePath) !== "string") ? "webp"
+    : imagePath.startsWith("http") ? "webp" : imagePath.split('.').pop();
+    return `data:image/${ext};base64,${arrayBufferToBase64(await imageBufferLoaderFromUri(imagePath))}`;
+  }
+  catch(err)
+  {
+    return createErrorObject("image", `${imagePath}는 이미지가 아닌 것 같아요`);
+  }
 }
 
-export async function imageBase64FromIcon(icon, iconDirectory) {
-  return `data:image/${imageExtFromIcon(icon)};base64,${arrayBufferToBase64(await imageBufferLoaderFromIcon(icon, iconDirectory))}`;
+
+export function sanitizeIcon(icon)
+{
+  return {
+    ...icon,
+    keywords: icon.keywords.filter(i => i.length > 0),
+    tags: icon.tags.filter(i => i.length > 0),
+  };
 }
- 
+
+
+/**
+ * icon의 항목이 유일하면 `true`를 리턴함.
+ * 아니라면 상세 메시지를 리턴함.
+ * @param {*} icon 
+ * @param {*} iconIdx 
+ * @param {*} iconList 
+ * @returns 
+ */
 export function isUniqueIcon(icon, iconIdx, iconList) {
   for(let i=0; i<iconList.length; i++)
   {
@@ -73,47 +170,45 @@ export function isUniqueIcon(icon, iconIdx, iconList) {
     /**
      * name check
      */
-    if(typeof(currentIcon.name) !== "string" || currentIcon.name.length === 0)
+    if(!isValidString(currentIcon.name))
     {
-      return {
-        status: false,
-        message: {
-          message: "아래 value에 적혀있는 아이콘에 name가 없어요. 포맷 검증을 한 뒤에 추가해주세요.",
-          key: "",
+      return createErrorObject(
+        ICON_KEYS.NAME,
+        `아래 value에 있는 아이콘에 name 항목이 없어요. 포맷 검증을 먼저 해주세요.`,
+        0,
+        {
           value: currentIcon,
           conflict: i,
         }
-      }
+      )
     }
     if(icon.name === currentIcon.name)
     {
-      return {
-        status: false,
-        message: {
-          key: "name",
-          value: icon.name,
+      return createErrorObject(
+        ICON_KEYS.NAME,
+        `같은 name을 가지는 아이콘이 있어요.`,
+        0,
+        {
+          value: [icon, currentIcon],
           conflict: i,
         }
-      }
+      )
     }
 
     /**
      * keywords check
      */
-    if(
-      Array.isArray(currentIcon.keywords) === false || 
-      currentIcon.keywords.filter(i => (typeof(i) !== "string" || i.length === 0).length !== 0)
-    )
+    if(!isValidStringArray(currentIcon.keywords))
     {
-      return {
-        status: false,
-        message: {
-          message: "아래 value에 적혀있는 아이콘에 keywords가 없어요. 포맷 검증을 한 뒤에 추가해주세요.",
-          key: "",
+      return createErrorObject(
+        ICON_KEYS.KEYWORDS,
+        `아래 value에 적혀있는 아이콘에 keywords가 없어요. 포맷 검증을 한 뒤에 추가해주세요.`,
+        0,
+        {
           value: currentIcon,
           conflict: i,
         }
-      }
+      )
     }
 
     for(let ik=0; ik<icon.keywords.length; ik++)
@@ -122,60 +217,93 @@ export function isUniqueIcon(icon, iconIdx, iconList) {
       {
         if(icon.keywords[ik] === currentIcon.keywords[ilk])
         {
-          return {
-            status: false,
-            message: {
-              key: "keywords",
-              value: icon.keywords,
+          return createErrorObject(
+            ICON_KEYS.KEYWORDS,
+            `중복되는 keyword가 있어요.`,
+            0,
+            {
+              value: [icon, currentIcon],
               conflict: i,
             }
-          }
+          )
         }
       }
     }
   }
 
-  return {
-    status: true,
-    message: {},
-  };
+  return true;
 }
 
-export function isValidIcon(icon) {
-  console.log(icon);
+/**
+ * icon에 에러가 있다면 리스트 형식으로 리턴함.
+ * 없다면 빈 리스트.
+ * @param {*} icon 
+ * @returns 
+ */
+export function findErrorsInIcon(icon) {
+  const errors = [];
 
-  if(typeof(icon.name) !== "string" || icon.name.length === 0)
+  if(!isValidString(icon.name))
   {
-    return {
-      status: false,
-      message: "name 항목은 있어야 해요."
-    }
+    errors.push(createErrorObject(
+      ICON_KEYS.NAME, 
+      "name 항목은 있어야 해요.",
+      0,
+      {
+        value: icon.name
+      }
+    ));
   }
 
-  if(Array.isArray(icon.keywords) === false || icon.keywords.filter(i => (
-    typeof(i) !== "string" || i.length === 0
-  )).length !== 0)
+  if(!isValidStringArray(icon.keywords))
   {
-    return {
-      status: false,
-      message: "keywords 항목은 있어야 해요."
-    }
+    errors.push(createErrorObject(
+      ICON_KEYS.KEYWORDS,
+      `keywords 항목은 있어야 해요.`,
+      0,
+      {
+        value: icon.keywords
+      }
+    ));
   }
 
-  if(Array.isArray(icon.tags) === false || icon.tags.filter(i => (
-    typeof(i) !== "string" || i.length === 0
-  )).length !== 0)
+  if(!isValidStringArray(icon.tags))
   {
-    return {
-      status: false,
-      message: "tags 항목은 있어야 해요. 없으면 `미지정`이라고 적어주세요."
-    }
+    errors.push(createErrorObject(
+      ICON_KEYS.TAGS, 
+      `tags 항목은 있어야 해요. 없으면 '미지정'이라고 적어주세요.`,
+      0,
+      {
+        value: icon.tags
+      }
+    ));
   }
 
-  return {
-    status: true,
-    message: undefined,
+  if(!isValidOptionalUrl(icon.url))
+  {
+    errors.push(createErrorObject(
+      ICON_KEYS.URL, 
+      `url 항목은 http로 시작하는 주소이어야 해요.`,
+      0,
+      {
+        value: icon.url
+      }
+    ));
   }
+
+  if(!isValidOptionalUrl(icon.uri))
+  {
+    errors.push(createErrorObject(
+      ICON_KEYS.URI, 
+      `uri 항목은 http로 시작하는 주소이어야 해요.`,
+      0,
+      {
+        value: icon.uri
+      }
+    ));
+  }
+
+  return errors;
 }
 
 export function findErrorsInIconList(iconList) {
@@ -196,46 +324,13 @@ export function findErrorsInIconList(iconList) {
   {
     const icon = iconList[i];
 
-    if(typeof(icon.name) !== "string")
-    {
-      errors.push({
-        key: "name",
-        conflict: [icon],
-        message: `name 항목은 문자열이어야 해요.`,
-        level: 0,
-      });
-      continue;
-    }
-
-    if(Array.isArray(icon.keywords) === false || icon.keywords.filter(i => (typeof(i) !== "string" || i.length === 0)).length > 0)
-    {
-      errors.push({
-        key: "keywords",
-        conflict: [icon],
-        message: `keywords 항목은 문자열 리스트이어야 해요.`,
-        level: 0,
-      });
-      continue;
-    }
-
-    if(typeof(icon.url) !== "string" || !icon.url.startsWith("http"))
-    {
-      errors.push({
-        key: "url",
-        conflict: [icon],
-        message: `url 항목은 http로 시작하는 문자열이어야 해요`,
-        level: 1,
-      });
-      continue;
-    }
-
-    if(typeof(icon.uri) !== "string" || !icon.uri.startsWith("http"))
-    {
-      errors.push({
-        key: "uri",
-        conflict: [icon],
-        message: `uri 항목은 http로 시작하는 문자열이어야 해요`,
-        level: 1,
+    const iconErrors = findErrorsInIcon(icon);
+    if(iconErrors.length > 0){
+      iconErrors.forEach(error => {
+        errors.push({
+          ...error,
+          value: icon
+        })
       });
       continue;
     }
@@ -245,24 +340,28 @@ export function findErrorsInIconList(iconList) {
       const innerIcon = iconList[innerIdx];
       if(icon.name === innerIcon.name)
       {
-        errors.push({
-          key: "name",
-          conflict: [icon, innerIcon],
-          message: `사실 name이 같아도 동작은 하지만 다르게 하는 게 맞을 것 같아요...`,
-          level: 3,
-        });
+        errors.push(createErrorObject(
+          ICON_KEYS.NAME, 
+          `사실 name이 같아도 동작은 하지만 다르게 하는 것이 맞는 것 같아요...`,
+          level=3,
+          {
+            conflict: [icon, innerIcon]
+          }
+        ));
       }
 
       for(let keywordIdx=0; keywordIdx<icon.keywords.length; keywordIdx++)
       {
         if(innerIcon.keywords.includes(icon.keywords[keywordIdx]))
         {
-          errors.push({
-            key: "keywords",
-            conflict: [icon, innerIcon],
-            message: `keywords는 겹치면 안돼요!`,
-            level: 0,
-          });
+          errors.push(createErrorObject(
+            ICON_KEYS.KEYWORDS,
+            `keywords는 겹치면 안돼요!`,
+            level=0,
+            {
+              conflict: [icon, innerIcon]
+            }
+          ));
         }
       }
     }
@@ -271,21 +370,70 @@ export function findErrorsInIconList(iconList) {
   return errors;
 }
 
+
+export async function moveImage(from, to) {
+  if(comparePath(from, to))
+  {
+    return true;
+  }
+
+  if(await window.fs.isFile(to))
+  {
+    return createErrorObject('', `${to}에 이미 파일이 있어요!`)
+  }
+
+  if(!(await window.fs.isFile(from)))
+  {
+    return createErrorObject('', `${from}에 파일이 없어요!`);
+  }
+
+  const res = await window.fs.renameSync(from, to);
+  if(res.status === false)
+  {
+    return createErrorObject('', res.error);
+  }
+
+  return true;
+}
+
+
+export async function copyImage(from, to) {
+  if(comparePath(from, to))
+  {
+    return true;
+  }
+
+  if(await window.fs.isFile(to))
+  {
+    return createErrorObject('', `${to}에 이미 파일이 있어요!`)
+  }
+
+  if(!(await window.fs.isFile(from)))
+  {
+    return createErrorObject('', `${from}에 파일이 없어요!`);
+  }
+
+  const res = await window.fs.copyFileSync(from, to);
+  if(res.status === false)
+  {
+    return createErrorObject('', res.error);
+  }
+
+  return true;
+}
+
+/**
+ * js 데이터 저장
+ * @param {*} iconList 
+ * @param {*} appPath 
+ * @returns 
+ */
 export async function saveIconListToFile(iconList, appPath) {
-  const copiedIconList = await Promise.all(iconList.map(async (icon) => {
-    if(icon.$localPath === undefined || icon.$localPath.length === 0) return icon;
-    if(icon.$localPath.startsWith(appPath.iconDirectory)) return icon;
-
-    const res = await window.fs.copyFileSync(icon.$localPath, `${appPath.iconDirectory}/${icon.name}`);
-    if(res.status === false)
-    {
-      console.error(res.error);
-      throw new Error(res.error);
-    }
-    return icon;
-  }));
-
-  const jsonData = copiedIconList.map(icon => Object.fromEntries(Object.entries(icon)
+  /**
+   * 키가 $으로 시작하거나
+   * 값 길이가 1 이상인 것만 저장함.
+   */
+  const jsonData = iconList.map(icon => Object.fromEntries(Object.entries(icon)
     .filter(([key, value]) => (
       !key.startsWith("$") && 
       value.length > 0

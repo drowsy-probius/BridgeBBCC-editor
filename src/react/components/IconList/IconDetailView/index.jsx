@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import "./style.css";
-import { ImageView } from "../../components";
+import ImageView from "../../common/ImageView";
 
 import { useSelector } from "react-redux";
 import { selectAppPath } from "../../../redux/appPath";

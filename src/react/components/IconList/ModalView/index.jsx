@@ -1,10 +1,25 @@
 import React from "react";
 
 import { Button, Modal } from 'react-bootstrap';
-import IconEditor from "../IconEditor";
+import IconEditor from "../../common/IconEditor";
 
 function ModalView(props){
-  const {icon, showModal, handleModalClose, iconDeleteHandler} = props;
+  const {
+    icon, 
+    setModifiedIcon,
+    showModal, 
+    handleModalClose, 
+    handleModalCloseWithoutSave,
+    iconDeleteHandler,
+  } = props;
+
+  const onKeyDown = (event) => {
+    // enter key
+    if(event.keyCode === 13)
+    {
+      return handleModalClose();
+    }
+  }
 
   return (
     <>
@@ -26,12 +41,17 @@ function ModalView(props){
           </Modal.Header>
 
           <Modal.Body>
-            <IconEditor icon={icon} />
+            <IconEditor 
+              initialIcon={icon} 
+              setModifiedIcon={setModifiedIcon}
+              onKeyDown={onKeyDown}
+            />
           </Modal.Body>
 
           <Modal.Footer>
             <Button variant="danger" onClick={()=>{iconDeleteHandler(icon)}}>삭제</Button>
-            <Button variant="secondary" onClick={handleModalClose}>닫기</Button>
+            <Button variant="secondary" onClick={handleModalCloseWithoutSave}>취소</Button>
+            <Button variant="secondary" onClick={handleModalClose}>닫기(저장)</Button>
           </Modal.Footer>
         </Modal>
       }
